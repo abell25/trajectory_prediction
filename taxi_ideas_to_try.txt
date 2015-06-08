@@ -1,0 +1,33 @@
+
+
+
+# Weekend of June 6,7
+======================
+
+Local testability:
+[X] Create a test set and verify it's CV is similar to the leaderboard 
+   * the test set seems like there are shorter trips..
+
+# 1. Trip Features
+(These can generate path features that we will feed directly into a ML algorithm)
+
+Start/End priors
+[ ] Build a simple model Pr(end|begining) using k-nn for prediction
+[ ] run clustering algorithm to find most common points (or round to 3?) and generate Pr(end|curr) matrix
+
+Trip "fingerprint"
+[ ] Create a histogram of coordinates
+   [ ] Run k-means first to reduce the dimensionality of this procedure
+   
+
+
+# 2. Model-based classification 
+(We will attempt to model the dynamics of the system)
+
+Markov model
+[ ] Build a graph where you map each coord transition.  Approximate this model with a Markov Model
+
+
+# 3. Sequence-distance
+(Find similar paths using sequence matching techniques
+[ ] index paths by a grid over the map, to reduce the number of comparisons for DTW (or any path comparison technique)
