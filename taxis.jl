@@ -1,8 +1,11 @@
 
 module taxis
 using sequenceCompare
+using DataFrames
+using JSON
+using Iterators
 
-    export Point, SequenceRef, GetUniqueCoords, GetTableOrderedSubset, ConstructCoordsDatabase, ConstructCoordsDatabase2, PlotPaths, findClosestTrainingExample, findClosestTrainingExampleForTestSet
+export Point, SequenceRef, LoadData, GetUniqueCoords, GetTableOrderedSubset, ConstructCoordsDatabase, ConstructCoordsDatabase2, PlotPaths, findClosestTrainingExample, findClosestTrainingExampleForTestSet
 
     immutable Point{T}
       x::T
@@ -13,6 +16,42 @@ using sequenceCompare
         TripId::Int64
         SequenceIndex::Int64
         LengthRemaining::Int64
+    end
+
+
+    function LoadData(train_path, test_path)
+        println("Begin")
+
+        println("loading csv files")
+        taxi_df = readtable(train_path)
+        taxi_validation_df = readtable(test_path)
+
+        println("loading coords")
+        taxi_df[:COORDS] = [float(hcat(JSON.parse(x)...)) for x in  taxi_df[:POLYLINE]]
+        taxi_validation_df[:COORDS] = [float(hcat(JSON.parse(x)...)) for x in taxi_validation_df[:POLYLINE]]
+
+        println("getting coords counts")
+        taxi_df[:NUM_COORDS] = [int(length(x)/2)::Int64 for x in taxi_df[:COORDS]]
+        taxi_validation_df[:NUM_COORDS] = [int(length(x)/2)::Int64 for x in taxi_validation_df[:COORDS]]
+
+        println("deleting unneeded data rows/columns")
+        delete!(taxi_validation_df, :POLYLINE)
+        delete!(taxi_df, :POLYLINE)
+
+        taxi_df[:START] = [x[:,1] for x in taxi_df[:COORDS]]
+        taxi_validation_df[:START] = [x[:,1] for x in taxi_validation_df[:COORDS]]
+
+        taxi_df[:END] = [x[:,end] for x in taxi_df[:COORDS]]
+        taxi_validation_df[:END] = [x[:,end] for x in taxi_validation_df[:COORDS]]
+
+        #These examples are not going to be useful!
+        deleterows!(taxi_df, find(taxi_df[:NUM_COORDS] .== 0))
+    
+    taxi_df[:COORDS_TEST] = [c[:,1:int(floor((0.3 + 0.7*rand(1)[1])*size(c,2)))] for c in taxi_df[:COORDS]]
+
+        println("done!")
+    
+        return taxi_df, taxi_validation_df
     end
 
 
